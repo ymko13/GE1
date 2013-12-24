@@ -25,7 +25,7 @@ bool MyLittleScene::Initialise()
 	
 		collisionConfiguration = new btDefaultCollisionConfiguration();
 		dispatcher = new btCollisionDispatcher(collisionConfiguration);
-
+		
 		// The world.
 		btVector3 worldMin(-1000,-1000,-1000);
 		btVector3 worldMax(1000,1000,1000);
@@ -46,14 +46,11 @@ bool MyLittleScene::Initialise()
 		shared_ptr<Model> model = Content::LoadModel("cobramk3", glm::rotate(glm::mat4(1), 180.0f, glm::vec3(0,1,0)));
         ship1->Attach(model);
         ship1->position = glm::vec3(20, 5, 20); 
-        //ship1->Attach(make_shared<VectorDrawer>());
-		//shared_ptr<PhysicsController> pcontroller = physicsFactory->CreateFromModel("cobramk3", glm::vec3(), glm::quat(), glm::vec3(1.5f,1.5f,1.5f));
-		//ship1->Attach(pcontroller);
         Attach(ship1);
 		
 		//This sets the camera to follow from behind
 		//gamecomponent to follow, distance from model to camera, height from model to camera, distance how far from the object the camera looks.
-		camera->FollowObject(ship1, -12.0f, 5.0f, 2.0f);
+		camera->RearView(ship1, -12.0f, 5.0f, 2.0f, 0.75f);
 		//This sets the camera to follow in a perspective
 		//camera->PFollowObject(ship1, glm::vec3(20,5,0), glm::vec3(glm::radians(20.0f), 0, glm::radians(60.0f)), 1.0f, 0.98f);
 
@@ -75,16 +72,17 @@ void MyLittleScene::Update(float timeDelta)
 {   
 	if(keyState[SDL_SCANCODE_P])
 	{
-		camera->PFollowObject(ship1, glm::vec3(20,5,0), glm::vec3(glm::radians(20.0f), 0, glm::radians(60.0f)), 1.0f, 0.98f);
+		camera->PerspectiveView(ship1, glm::vec3(20,5,0), glm::radians(20.0f), glm::radians(60.0f), 1.0f, 0.98f);
 	}
 	if(keyState[SDL_SCANCODE_B])
 	{
-		camera->FollowObject(ship1, -12.0f, 5.0f, 2.0f);
+		camera->RearView(ship1, -12.0f, 5.0f, 1.0f, 0.85f);
 	}
 	if(keyState[SDL_SCANCODE_F])
 	{
 		camera->UnFollow();
 	}
+
 	if ((keyState[SDL_SCANCODE_SPACE]) && (elapsed > 0.8f))
 	{
 		glm::vec3 pos = ship1->position + (ship1->look * 1.0f);
@@ -101,7 +99,7 @@ void MyLittleScene::Update(float timeDelta)
 		elapsed += timeDelta;
 	}
 
-	if(lastSpawn > 20.0f)
+	if(lastSpawn > 10.0f)
 	{
 		glm::vec3 pos = ship1->position + glm::vec3(RandomFloat() * 100.0f,RandomFloat() * 100.0f,RandomFloat() * 100.0f);
 		shared_ptr<PhysicsController> physicsComponent = physicsFactory->CreateBox(5,5,5, pos, glm::quat());
@@ -120,7 +118,7 @@ void MyLittleScene::Update(float timeDelta)
 		//checking if collision happened here...
 	}
 
-	float newtons = 15.0f;
+	float newtons = 45.0f;
     float epsilon = glm::epsilon<float>();
     if (keyState[SDL_SCANCODE_UP])
     {
@@ -143,9 +141,9 @@ void MyLittleScene::Update(float timeDelta)
 	ship1->velocity += accel * timeDelta;
     ship1->position += ship1->velocity * timeDelta;
     // Check if the velocity length is > epsilon and if so create the look vector from the velocity
-    if (glm::length(ship1->velocity) > epsilon)
+	if (glm::length(ship1->velocity) > epsilon)
     {
-		ship1->look = glm::normalize(ship1->velocity);        
+		ship1->look = glm::normalize(ship1->velocity);
     }
     // Now check to see if the |look - basis| > epsilon
     // And if so calculate the quaternion
